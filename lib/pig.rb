@@ -1,9 +1,10 @@
 require_relative './player'
+require_relative './leaderboard'
 
 class Pig
   def initialize
     @players   = []
-    @max_score = 100
+    @max_score = 3
   end
 
   def get_players
@@ -15,10 +16,11 @@ class Pig
         return
       else
         @players.push Player.new(input)
+        # if @player.win
+        #   # (add )...
       end
     end
   end
-
   def play_round
     @players.each do |p|
       puts "\n\nIt is #{p.name}'s turn! You have #{p.score} points. (Press ENTER)"
@@ -26,37 +28,44 @@ class Pig
       take_turn p
     end
     remove_losing_players!
+    update_winner
   end
 
   def remove_losing_players!
-    if @players.any? { |p| p.score > @max_score }
+    if @players.any? { |p| p.score >= @max_score }
       max_score = @players.map { |p| p.score }.max
       @players = @players.select { |p| p.score == max_score }
     end
   end
 
-  def winner
+  def update_winner #supposed to send winner score to the model
     if @players.length == 1
       @players.first
-    end
-  end
-
-  def take_turn player
-    turn_total = 0
-    loop do
-      roll = rand 1..6
-      if roll == 1
-        puts "You rolled a 1. No points for you!"
-        return
-      else
-        turn_total += roll
-        puts "You rolled a #{roll}. Turn total is #{turn_total}. Again?"
-        if gets.chomp.downcase == "n"
-          puts "Stopping with #{turn_total} for the turn."
-          player.score += turn_total
-          return
-        end
-      end
+      successful_game = Leaderboard.where(name: player).first #can I even use an instance variable here?
+      successful_game.win = successful_game.win + 1
+      score.save
     end
   end
 end
+
+
+#   def take_turn player
+#     turn_total = 0
+#     loop do
+#       roll = rand 1..6
+#       if roll == 1
+#         puts "You rolled a 1. No points for you!"
+#         return
+#       else
+#         turn_total += roll
+#         puts "You rolled a #{roll}. Turn total is #{turn_total}. Again?"
+#         if gets.chomp.downcase == "n"
+#           puts "Stopping with #{turn_total} for the turn."
+#           player.score += turn_total
+#           return
+#         end
+#       end
+#     end
+#   end
+# end
+# end
